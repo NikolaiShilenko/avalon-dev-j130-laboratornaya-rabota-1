@@ -17,4 +17,12 @@ public class DocumentException extends Exception {
         super(string);
     }
 
+    public DocumentException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public DocumentException(Throwable cause) {
+        super(cause);
+    }
+
 }

@@ -22,7 +22,7 @@ import java.util.Objects;
 public class Documents {
 
     public static final int VERSION = 267384;
-    private final int document_id;
+    private int document_id;
     private String title;
     private String text;
     private Date date;
@@ -37,12 +37,20 @@ public class Documents {
         this.document_id = document_id;
         this.title = title;
         this.text = text;
-        this.date = date;
+        if (date == null) {
+            this.date = new Date(System.currentTimeMillis());
+        } else {
+            this.date = date;
+        }
         this.author_id = author_id;
     }
 
     public int getDocument_id() {
         return document_id;
+    }
+
+    public void setDocument_id(int document_id) {
+        this.document_id = document_id;
     }
 
     public String getTitle() {
@@ -94,6 +102,11 @@ public class Documents {
         return !(this.document_id != other.document_id
                 || this.author_id != other.author_id
                 || !Objects.equals(this.title, other.title));
+    }
+
+    @Override
+    public String toString() {
+        return document_id + " " + title + " " + text + " " + date + " " + author_id;
     }
 
 }
