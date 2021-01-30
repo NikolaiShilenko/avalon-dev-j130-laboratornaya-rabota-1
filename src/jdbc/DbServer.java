@@ -53,7 +53,6 @@ public class DbServer implements IDbService {
 //            ex.printStackTrace();
 //        }
 //    }
-
     public boolean findAuthorById(int id) throws SQLException {
         String sql = "SELECT * FROM app.authors WHERE id = ?";
         try (PreparedStatement pst = setPreparedStatement(sql)) {
@@ -63,6 +62,8 @@ public class DbServer implements IDbService {
             } catch (SQLException ex) {
                 throw new SQLException(ex);
             }
+        } catch (SQLException ex) {
+            throw new SQLException(ex);
         }
     }
 
@@ -75,6 +76,8 @@ public class DbServer implements IDbService {
             } catch (SQLException ex) {
                 throw new SQLException(ex);
             }
+        } catch (SQLException ex) {
+            throw new SQLException(ex);
         }
     }
 
