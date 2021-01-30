@@ -19,6 +19,7 @@ public class DbServer implements IDbService {
 
     private Connection con;
     private PreparedStatement pst;
+    private ResultSet rs;
 
     public DbServer(String url, String user, String psw) throws SQLException {
         try {
@@ -58,8 +59,8 @@ public class DbServer implements IDbService {
             String sql = "SELECT * FROM app.authors WHERE id = ?";
             setPreparedStatement(sql);
             pst.setInt(1, id);
-            ResultSet resultSet = pst.executeQuery();
-            return resultSet.next();
+            rs = pst.executeQuery();
+            return rs.next();
         } catch (SQLException ex) {
             throw new SQLException(ex);
         }
@@ -70,8 +71,8 @@ public class DbServer implements IDbService {
             String sql = "SELECT * FROM app.documents WHERE id = ?";
             setPreparedStatement(sql);
             pst.setInt(1, id);
-            ResultSet resultSet = pst.executeQuery();
-            return resultSet.next();
+            rs = pst.executeQuery();
+            return rs.next();
         } catch (SQLException ex) {
             throw new SQLException(ex);
         }
@@ -218,12 +219,12 @@ public class DbServer implements IDbService {
         Documents doc;
         try {
             pst.setInt(1, author.getAuthor_id());
-            ResultSet resultSet = pst.executeQuery();
-            if (resultSet.next()) {
+            rs = pst.executeQuery();
+            if (rs.next()) {
                 do {
-                    doc = new Documents(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("text"), resultSet.getDate("create_date"), resultSet.getInt("author"));
+                    doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
                     docList.add(doc);
-                } while (resultSet.next());
+                } while (rs.next());
                 Documents[] a = new Documents[docList.size()];
                 return docList.toArray(a);
             }
@@ -258,12 +259,12 @@ public class DbServer implements IDbService {
         try {
             pst.setString(1, "%" + content + "%");
             pst.setString(2, "%" + content + "%");
-            ResultSet resultSet = pst.executeQuery();
-            if (resultSet.next()) {
+            rs = pst.executeQuery();
+            if (rs.next()) {
                 do {
-                    doc = new Documents(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("text"), resultSet.getDate("create_date"), resultSet.getInt("author"));
+                    doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
                     docList.add(doc);
-                } while (resultSet.next());
+                } while (rs.next());
                 Documents[] a = new Documents[docList.size()];
                 return docList.toArray(a);
             }
@@ -328,6 +329,12 @@ public class DbServer implements IDbService {
     @Override
     public void close() throws SQLException {
         try {
+            if (rs != null && !rs.isClosed()) {
+                rs.close();
+            }
+            if (pst != null && !pst.isClosed()) {
+                pst.close();
+            }
             if (con != null && !con.isClosed()) {
                 con.close();
                 System.out.println("Connection is closed...");
