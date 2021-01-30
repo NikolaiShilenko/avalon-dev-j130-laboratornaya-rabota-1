@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,8 +19,6 @@ import java.util.List;
 public class DbServer implements IDbService {
 
     private Connection con;
-    private PreparedStatement pst;
-    private ResultSet rs;
 
     public DbServer(String url, String user, String psw) throws SQLException {
         try {
@@ -30,16 +29,17 @@ public class DbServer implements IDbService {
         }
     }
 
-    private void setPreparedStatement(String sql) throws SQLException {
+    private PreparedStatement setPreparedStatement(String sql) throws SQLException {
         try {
-            pst = con.prepareStatement(sql);
+            PreparedStatement pst = con.prepareStatement(sql);
             System.out.println("PreparedStatement object is created...");
+            return pst;
         } catch (SQLException ex) {
             throw new SQLException("PreparedStatement object isn't created with sql string: " + sql, ex);
         }
     }
 
-    public static void main(String[] args) {
+//    public static void main(String[] args) {
 //        try (DbServer dbServer = new DbServer("jdbc:derby://localhost:1527/test", "test", "test")) {
 //
 //        } catch (SQLException ex) {
@@ -52,29 +52,29 @@ public class DbServer implements IDbService {
 //            //System.out.println(ex.getMessage() + "\n " + ex.getCause());
 //            ex.printStackTrace();
 //        }
-    }
+//    }
 
     public boolean findAuthorById(int id) throws SQLException {
-        try {
-            String sql = "SELECT * FROM app.authors WHERE id = ?";
-            setPreparedStatement(sql);
+        String sql = "SELECT * FROM app.authors WHERE id = ?";
+        try (PreparedStatement pst = setPreparedStatement(sql)) {
             pst.setInt(1, id);
-            rs = pst.executeQuery();
-            return rs.next();
-        } catch (SQLException ex) {
-            throw new SQLException(ex);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            } catch (SQLException ex) {
+                throw new SQLException(ex);
+            }
         }
     }
 
     public boolean findDocumentById(int id) throws SQLException {
-        try {
-            String sql = "SELECT * FROM app.documents WHERE id = ?";
-            setPreparedStatement(sql);
+        String sql = "SELECT * FROM app.documents WHERE id = ?";
+        try (PreparedStatement pst = setPreparedStatement(sql)) {
             pst.setInt(1, id);
-            rs = pst.executeQuery();
-            return rs.next();
-        } catch (SQLException ex) {
-            throw new SQLException(ex);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            } catch (SQLException ex) {
+                throw new SQLException(ex);
+            }
         }
     }
 
@@ -99,12 +99,7 @@ public class DbServer implements IDbService {
         try {
             if (!this.findAuthorById(author.getAuthor_id())) {
                 String sqlInsert = "INSERT INTO app.authors (id, name, text) VALUES(?, ?, ?)";
-                try {
-                    setPreparedStatement(sqlInsert);
-                } catch (SQLException ex) {
-                    throw new DocumentException(ex);
-                }
-                try {
+                try (PreparedStatement pst = setPreparedStatement(sqlInsert)) {
                     pst.setInt(1, author.getAuthor_id());
                     pst.setString(2, author.getAuthor());
                     pst.setString(3, author.getNotes());
@@ -114,12 +109,7 @@ public class DbServer implements IDbService {
                 }
             } else {
                 String sqlUpdate = "UPDATE app.authors SET name = ?, text = ? WHERE id = ?";
-                try {
-                    setPreparedStatement(sqlUpdate);
-                } catch (SQLException ex) {
-                    throw new DocumentException(ex);
-                }
-                try {
+                try (PreparedStatement pst = setPreparedStatement(sqlUpdate)) {
                     pst.setString(1, author.getAuthor());
                     pst.setString(2, author.getNotes());
                     pst.setInt(3, author.getAuthor_id());
@@ -154,12 +144,7 @@ public class DbServer implements IDbService {
         try {
             if (!findDocumentById(doc.getDocument_id())) {
                 String sql = "INSERT INTO app.documents (id, name, text, create_date, author) VALUES(?, ?, ?, ?, ?)";
-                try {
-                    setPreparedStatement(sql);
-                } catch (SQLException ex) {
-                    throw new DocumentException(ex);
-                }
-                try {
+                try (PreparedStatement pst = setPreparedStatement(sql)) {
                     pst.setInt(1, doc.getDocument_id());
                     pst.setString(2, doc.getTitle());
                     pst.setString(3, doc.getText());
@@ -171,12 +156,7 @@ public class DbServer implements IDbService {
                 }
             } else {
                 String sql = "UPDATE app.documents SET name = ?, text = ?, create_date = ?, author = ? WHERE id = ?";
-                try {
-                    setPreparedStatement(sql);
-                } catch (SQLException ex) {
-                    throw new DocumentException(ex);
-                }
-                try {
+                try (PreparedStatement pst = setPreparedStatement(sql)) {
                     pst.setString(1, doc.getTitle());
                     pst.setString(2, doc.getText());
                     pst.setDate(3, new java.sql.Date(doc.getDate().getTime()));
@@ -210,23 +190,21 @@ public class DbServer implements IDbService {
     @Override
     public Documents[] findDocumentByAuthor(Authors author) throws DocumentException {
         String sql = "SELECT * FROM app.documents WHERE author = ?";
-        try {
-            setPreparedStatement(sql);
-        } catch (SQLException ex) {
-            throw new DocumentException(ex);
-        }
-        List<Documents> docList = new ArrayList<>();
-        Documents doc;
-        try {
+        try (PreparedStatement pst = setPreparedStatement(sql)) {
             pst.setInt(1, author.getAuthor_id());
-            rs = pst.executeQuery();
-            if (rs.next()) {
-                do {
-                    doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
-                    docList.add(doc);
-                } while (rs.next());
-                Documents[] a = new Documents[docList.size()];
-                return docList.toArray(a);
+            List<Documents> docList = new ArrayList<>();
+            Documents doc;
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    do {
+                        doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
+                        docList.add(doc);
+                    } while (rs.next());
+                    Documents[] a = new Documents[docList.size()];
+                    return docList.toArray(a);
+                }
+            } catch (SQLException ex) {
+                throw new DocumentException(ex);
             }
         } catch (SQLException ex) {
             throw new DocumentException(ex);
@@ -249,24 +227,22 @@ public class DbServer implements IDbService {
     @Override
     public Documents[] findDocumentByContent(String content) throws DocumentException {
         String sql = "SELECT * FROM app.documents WHERE name LIKE ? OR text LIKE ?";
-        try {
-            setPreparedStatement(sql);
-        } catch (SQLException ex) {
-            throw new DocumentException(ex);
-        }
-        List<Documents> docList = new ArrayList<>();
-        Documents doc;
-        try {
+        try (PreparedStatement pst = setPreparedStatement(sql)) {
             pst.setString(1, "%" + content + "%");
             pst.setString(2, "%" + content + "%");
-            rs = pst.executeQuery();
-            if (rs.next()) {
-                do {
-                    doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
-                    docList.add(doc);
-                } while (rs.next());
-                Documents[] a = new Documents[docList.size()];
-                return docList.toArray(a);
+            List<Documents> docList = new ArrayList<>();
+            Documents doc;
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    do {
+                        doc = new Documents(rs.getInt("id"), rs.getString("name"), rs.getString("text"), rs.getDate("create_date"), rs.getInt("author"));
+                        docList.add(doc);
+                    } while (rs.next());
+                    Documents[] a = new Documents[docList.size()];
+                    return docList.toArray(a);
+                }
+            } catch (SQLException ex) {
+                throw new DocumentException(ex);
             }
         } catch (SQLException ex) {
             throw new DocumentException(ex);
@@ -306,21 +282,11 @@ public class DbServer implements IDbService {
     public boolean deleteAuthor(int id) throws DocumentException {
         String sqlDeleteDocs = "DELETE FROM app.documents WHERE author = ?";
         String sqlDeleteAuthor = "DELETE FROM app.authors WHERE id = ?";
-        try {
-            setPreparedStatement(sqlDeleteDocs);
-        } catch (SQLException ex) {
-            throw new DocumentException(ex);
-        }
-        try {
+        try (PreparedStatement pst = setPreparedStatement(sqlDeleteDocs); PreparedStatement pst2 = setPreparedStatement(sqlDeleteAuthor)) {
             pst.setInt(1, id);
             pst.executeUpdate();
-        } catch (SQLException ex) {
-            throw new DocumentException(ex);
-        }
-        try {
-            setPreparedStatement(sqlDeleteAuthor);
-            pst.setInt(1, id);
-            return pst.executeUpdate() == 1;
+            pst2.setInt(1, id);
+            return pst2.executeUpdate() == 1;
         } catch (SQLException ex) {
             throw new DocumentException(ex);
         }
@@ -329,12 +295,6 @@ public class DbServer implements IDbService {
     @Override
     public void close() throws SQLException {
         try {
-            if (rs != null && !rs.isClosed()) {
-                rs.close();
-            }
-            if (pst != null && !pst.isClosed()) {
-                pst.close();
-            }
             if (con != null && !con.isClosed()) {
                 con.close();
                 System.out.println("Connection is closed...");
