@@ -83,8 +83,8 @@ public class SimpleChat implements ISimpleChat {
         try {
             clientSocket = new Socket(host, port);
             System.out.println("Chat client started...");
-            sendMessage(clientSocket);
-            printMessage(clientSocket);
+            sendMessage();
+            printMessage();
         } catch (UnknownHostException e) {
             throw new ChatException("Couldn't get I/O for the connection to " + host, e);
         } catch (IOException e) {
@@ -105,8 +105,8 @@ public class SimpleChat implements ISimpleChat {
             serverSocket = new ServerSocket(port);
             System.out.println("Chat server started...");
             clientSocket = serverSocket.accept();
-            sendMessage(clientSocket);
-            printMessage(clientSocket);
+            sendMessage();
+            printMessage();
         } catch (UnknownHostException e) {
             throw new ChatException("Don't know about host " + host, e);
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public class SimpleChat implements ISimpleChat {
      * работе приложения.
      */
     @Override
-    public void printMessage(Socket clientSocket) throws ChatException {
+    public void printMessage() throws ChatException {
         Thread thread = new Thread() {
             public void run() {
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
@@ -148,7 +148,7 @@ public class SimpleChat implements ISimpleChat {
      * приложения.
      */
     @Override
-    public void sendMessage(Socket clientSocket) throws ChatException {
+    public void sendMessage() throws ChatException {
         Thread thread = new Thread() {
             public void run() {
                 try (PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);

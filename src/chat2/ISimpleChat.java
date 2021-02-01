@@ -51,7 +51,7 @@ public interface ISimpleChat extends AutoCloseable {
      * @return @throws ChatException выбрасывается в случае общей ошибки в
      * работе приложения.
      */
-    void printMessage(Socket clientSocket) throws ChatException;
+    void printMessage() throws ChatException;
 
     /**
      * Метод отправляет сообщение.
@@ -59,7 +59,7 @@ public interface ISimpleChat extends AutoCloseable {
      * @throws ChatException выбрасывается в случае общей ошибки в работе
      * приложения.
      */
-    void sendMessage(Socket clientSocket) throws ChatException;
+    void sendMessage() throws ChatException;
 
     /**
      * Метод закрывает открытые сокеты.
