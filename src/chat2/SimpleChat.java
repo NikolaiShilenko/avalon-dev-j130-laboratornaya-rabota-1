@@ -36,9 +36,9 @@ public class SimpleChat implements ISimpleChat {
     /**
      * Стандартный хост, на который отправляется файл.
      */
-    public static final String STANDART_HOST = "localhost";
+    public static final String STANDARD_HOST = "localhost";
 
-    public static final int STANDART_SERVER_PORT = 45678;
+    public static final int STANDARD_SERVER_PORT = 45678;
 
     private final String host;
 
@@ -49,8 +49,8 @@ public class SimpleChat implements ISimpleChat {
     private ServerSocket serverSocket;
 
     public SimpleChat() {
-        this.host = STANDART_HOST;
-        this.port = STANDART_SERVER_PORT;
+        this.host = STANDARD_HOST;
+        this.port = STANDARD_SERVER_PORT;
     }
 
     public SimpleChat(String host, int port) {
